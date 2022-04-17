@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Container, Nav, Navbar, NavDropdown} from "react-bootstrap";
+import {Badge, Container, Nav, Navbar, NavDropdown} from "react-bootstrap";
 
 import "./header.css";
 import {NavLink} from "react-router-dom";
@@ -24,11 +24,6 @@ class Header extends Component {
 
     render() {
 
-        console.log('render');
-        console.log(this.context.accounts[0]);
-        console.log(this.context.owner);
-        console.log(this.context.accounts[0] === this.context.owner);
-
         return (
             <Navbar bg="light" expand="lg" fixed="top" className="header">
                 <Container>
@@ -41,11 +36,9 @@ class Header extends Component {
                                 (this.context.accounts.length > 0 && this.context.accounts[0].toLowerCase() === this.context.owner)  &&
                                 // Only owner
                                 <NavDropdown title="Administration" id="basic-nav-dropdown">
-                                    <NavDropdown.Item href="#action/3.1">
-                                        <NavLink to='/voters'>Votants</NavLink>
-                                    </NavDropdown.Item>
-                                    <NavDropdown.Item href="#action/3.2">Workflow</NavDropdown.Item>
-                                    <NavDropdown.Item href="#action/3.3">Something</NavDropdown.Item>
+
+                                    <NavDropdown.Item><NavLink to='/admin/voters'>Voters</NavLink></NavDropdown.Item>
+                                    <NavDropdown.Item><NavLink to='/admin/workflow'>Workflow</NavLink></NavDropdown.Item>
                                     <NavDropdown.Divider />
                                     <NavDropdown.Item href="#action/3.4">Separated link</NavDropdown.Item>
                                 </NavDropdown>
@@ -54,7 +47,7 @@ class Header extends Component {
 
                         <Navbar.Collapse className="justify-content-end">
                             <Navbar.Text>
-                                { this.context.accounts.length > 0 ? <ENSText address={this.context.accounts[0]} /> : 'Not connected' }
+                                { this.context.accounts.length > 0 ? <ENSText address={this.context.accounts[0]} /> : <Badge bg="danger">Not connected</Badge> }
                             </Navbar.Text>
                         </Navbar.Collapse>
 

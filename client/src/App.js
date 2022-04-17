@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Button, Container} from "react-bootstrap";
+import {Container} from "react-bootstrap";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 import "./App.css";
@@ -8,6 +8,10 @@ import Footer from "./components/Footer";
 import Web3Context from "./store/web3-context";
 import getWeb3 from "./getWeb3";
 import VotingContract from "./contracts/Voting.json";
+import {Route, Switch} from "react-router-dom";
+import ManageVoter from "./pages/ManageVoter";
+import Workflow from "./pages/Workflow";
+
 
 class App extends Component {
 
@@ -46,7 +50,6 @@ class App extends Component {
             if( window.ethereum ) {
                 // detect Metamask account change
                 window.ethereum.on('accountsChanged', (accounts) => {
-                    console.log('accountsChanges to', accounts[0]);
                     this.setState({accounts})
                 });
 
@@ -57,6 +60,26 @@ class App extends Component {
                     }
                 });
             }
+
+            // instance.events.VoterRegistered({})
+            //     .on('data', event => { console.log(event) })
+            //     .on('error', event => { console.log('error') })
+            //     .on('connected', event => { console.log('connected') });
+            //
+            //
+            // instance.events.VoterRegistered({
+            //     fromBlock: 25958180,
+            // }, function(err, event) {
+            //     if( err ) {
+            //         console.log(err)
+            //     }
+            //     console.log(event.returnValues.voterAddress)
+            // });
+
+            const voter = await instance.methods.getVoter('0xa9e5c6C46C47c8f59BE35b41e2f76cb893178FA5').call();
+
+            console.log(voter)
+
 
             // Set web3, accounts, and contract to the state, and then proceed with an
             // example of interacting with the contract's methods.
@@ -74,23 +97,24 @@ class App extends Component {
     render() {
 
         return (
-            // <Web3Context.Provider value={{ contract: this.state.contract, web3: this.state.web3, accounts: this.state.accounts, owner: this.state.owner }}>
             <Web3Context.Provider value={{ web3: this.state.web3, contract: this.state.contract, accounts: this.state.accounts, owner: this.state.owner }}>
                     <div className="App">
                         <Header/>
                         <Container className="main">
-                            <h1>Good to Go!</h1>
-                            <p>Your Truffle Box is installed and ready.</p>
-                            <h2>Smart Contract Example</h2>
-                            <p>
-                                If your contracts compiled and migrated successfully, below will show
-                                a stored value of 5 (by default).
-                            </p>
-                            <Button variant="primary">Primary</Button>
-                            <p>
-                                Try changing the value stored on <strong>line 42</strong> of App.js.
-                            </p>
-                            <div>The stored value is: {this.props.storageValue}</div>
+                            <Switch>
+                                <Route path="/admin/voters/">
+                                    <ManageVoter/>
+                                </Route>
+                                <Route path="/admin/workflow/">
+                                    <Workflow/>
+                                </Route>
+                                <Route path="/proposals/" exact>
+                                    <h1>proposals</h1>
+                                </Route>
+                                <Route path="/proposals/:id">
+                                    <h1>proposal detail</h1>
+                                </Route>
+                            </Switch>
                         </Container>
                         <Footer/>
                     </div>

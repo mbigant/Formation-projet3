@@ -37,14 +37,21 @@ module.exports = {
   networks: {
     development: {
       host: "127.0.0.1",     // Localhost (default: none)
-      port: 8545,            // Standard Ethereum port (default: none)
-      network_id: "*"       // Any network (default: none)
+      port: 7545,            // Standard Ethereum port (default: none)
+      network_id: "5777"       // Any network (default: none)
     },
     mumbai: {
       provider: function () {
         return new HDWalletProvider(`${process.env.MNEMONIC}`, `https://polygon-mumbai.infura.io/v3/${process.env.INFURA_ID}`)
       },
       network_id: 80001,
+      from: '0x95E6Fc934505B29b0a13655D0E43de15Ea1afC30'
+    },
+    polygon: {
+      provider: function () {
+        return new HDWalletProvider(`${process.env.MNEMONIC}`, `https://polygon-mainnet.infura.io/v3/${process.env.INFURA_ID}`)
+      },
+      network_id: 137,
       from: '0x95E6Fc934505B29b0a13655D0E43de15Ea1afC30'
     },
     rinkeby: {
