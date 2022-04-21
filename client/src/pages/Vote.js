@@ -2,6 +2,7 @@ import React, {Component} from "react";
 import Web3Context from "../store/web3-context";
 import {Alert, Button, Card, Col, Container, Row} from "react-bootstrap";
 import ProposalModal from "../components/ProposalModal";
+import Moment from "react-moment";
 
 class Vote extends Component {
 
@@ -65,12 +66,14 @@ class Vote extends Component {
 
             for( let event of events ) {
 
+                const block = await this.context.web3.eth.getBlock(event.blockHash);
                 const proposal = await this.context.contract.methods.getOneProposal(event.returnValues.proposalId).call({from: this.context.accounts[0]});
 
                 proposalList.push({
                     id: event.returnValues.proposalId,
                     description: proposal.description,
-                    voteCount: proposal.voteCount
+                    voteCount: proposal.voteCount,
+                    timestamp: block.timestamp
                 })
             }
 
@@ -97,14 +100,18 @@ class Vote extends Component {
         console.log('on Submit')
         this.context.contract.once('ProposalRegistered', (err, event) => {
 
-            this.context.contract.methods.getOneProposal(event.returnValues.proposalId).call({from: this.context.accounts[0]}).then( proposal => {
+            this.context.web3.eth.getBlock(event.blockHash).then( block => {
 
-                this.setState( (prevState) => {
-                   return prevState.proposals.push({
-                       id: event.returnValues.proposalId,
-                       description: proposal.description,
-                       voteCount: proposal.voteCount
-                   });
+                this.context.contract.methods.getOneProposal(event.returnValues.proposalId).call({from: this.context.accounts[0]}).then( proposal => {
+
+                    this.setState( (prevState) => {
+                        return prevState.proposals.push({
+                            id: event.returnValues.proposalId,
+                            description: proposal.description,
+                            voteCount: proposal.voteCount,
+                            timestamp: block.timestamp
+                        });
+                    });
                 });
             });
 
@@ -155,16 +162,18 @@ class Vote extends Component {
                         </Col>
                         { this.state.proposals && this.state.proposals.map((proposal, idx) => (
                             <Col key={idx}>
-                                <Card>
+                                <Card className="position-relative">
+                                    { this.state.workflowStatus > 2 && proposal.voteCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">2</span> }
                                     <Card.Body>
                                         <Card.Title>Proposal #{proposal.id}</Card.Title>
+                                        <Card.Subtitle className="mb-2 text-muted fs-6 font-monospace"><Moment parse="X" format="YYYY-MM-DD HH:mm">{proposal.timestamp}</Moment></Card.Subtitle>
                                         <Card.Text>
                                             {proposal.description}
                                         </Card.Text>
                                         { this.state.workflowStatus === 3 && <Button variant="outline-primary">Vote for me !</Button> }
                                     </Card.Body>
                                     <Card.Footer className="text-muted">
-                                        { this.state.workflowStatus > 2 ? `${proposal.voteCount} vote` : 'Voting session not opened' }
+                                        { this.state.workflowStatus > 2 ? 'Vote opened' : 'Voting session not opened' }
                                     </Card.Footer>
                                 </Card>
                             </Col>
