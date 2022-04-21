@@ -1,3 +1,18 @@
 .header {
     margin-bottom: 70px;
 }
+.dropdown-menu a {
+    display: block;
+    padding-left: 15px;
+    text-decoration: none;
+    color: black;
+}
+.dropdown-menu a:hover {
+    background-color: rgba(211, 204, 204, 0.35);
+}
+.dropdown-menu a.active {
+    color: dodgerblue;
+}
+.dropdown-menu a.active:hover {
+    cursor: default;
+}

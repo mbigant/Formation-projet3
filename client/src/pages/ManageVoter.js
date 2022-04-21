@@ -1,7 +1,7 @@
 import React, {Component, Fragment} from "react";
 import {withRouter} from "react-router-dom";
 import Web3Context from "../store/web3-context";
-import {Button, Col, Container, Form, FormControl, InputGroup, Row} from "react-bootstrap";
+import {Alert, Button, Col, Container, Form, FormControl, InputGroup, Row} from "react-bootstrap";
 import Web3 from "web3";
 import Voter from '../components/Voter';
 import ENS, {getEnsAddress} from "@ensdomains/ensjs";
@@ -16,54 +16,99 @@ class ManageVoter extends Component {
         inputError: null,
         isValid: false,
         contract: null,
-        voters: []
+        voters: [],
+        workflowStatus: null
     };
 
+    listenerConnected = false;
+
     constructor(props) {
+
+        console.log('contructor')
         super(props);
 
         const provider = new Web3.providers.HttpProvider(
             "https://ropsten.infura.io/v3/d582c7d40d2148f590e23b2d7a812e20"
         );
 
-        this.ens = new ENS({ provider, ensAddress: getEnsAddress('1') });
+        this.ens = new ENS({ provider, ensAddress: getEnsAddress('3') }); // 3 = ropsten but doesn't care
+    }
+
+    startListeningEvents() {
+
+        this.listenerConnected = true;
+        const voters = [];
+
+        this.context.contract.events.VoterRegistered({fromBlock: 0})
+            .on('data', event => {
+                voters.push( event.returnValues.voterAddress );
+                this.setState({voters : voters});
+            })
+            .on('error', event => { console.log('error') })
+            .on('connected', event => { console.log('connected') });
     }
 
     componentDidMount() {
         console.log(this.props.match.params)
-    }
+        console.log('componentDidMount')
 
-    componentDidUpdate(prevProps, prevState) {
-
-        if( prevState.contract == null && this.state.contract == null && this.context.contract !== null ) {
-            this.setState({contract: this.context.contract})
-
-            const voters = [];
-
-            this.context.contract.events.VoterRegistered({fromBlock: 0,})
-                .on('data', event => {
-                    voters.push( event.returnValues.voterAddress );
-                    this.setState({voters : voters});
-                    //console.log(event);
-                })
-                .on('error', event => { console.log('error') })
-                .on('connected', event => { console.log('connected') });
+        if( this.context.contract ) {
+            this.startListeningEvents();
         }
-
-        // 2 0x6d142D76323262cE46696801be7B5FeAEfF13dAc
     }
 
-    registerAddress = async (event) => {
+    async componentDidUpdate(prevProps, prevState) {
+
+        // got context
+        if( prevState.contract == null && this.state.contract == null && this.context.contract !== null ) {
+
+            let workflowStatusResp;
+
+            try {
+                workflowStatusResp = parseInt(await this.context.contract.methods.workflowStatus().call());
+            } catch (err) {
+                console.log(err);
+            }
+
+            this.setState({
+                contract: this.context.contract,
+                workflowStatus: workflowStatusResp
+            })
+
+            if( ! this.listenerConnected ) {
+                this.startListeningEvents();
+            }
+        }
+    }
+
+    registerAddress = (event) => {
         event.preventDefault();
 
         this.context.contract.once('VoterRegistered', {
             fromBlock: 25957319
         }, function(error, event){ console.log(event); });
 
-        const resp = await this.context.contract.methods.addVoter(this.state.inputAddress).send({from: this.context.accounts[0]});
-        //this.context.contract.methods.addVoter(this.state.inputAddress).send({from: this.context.accounts[0]});
+        console.log( this.context.web3.eth.handleRevert );
+        console.log( this.context.web3.version );
 
-        console.log(resp);
+        this.context.contract.methods.addVoter(this.state.inputAddress).send({from: this.context.accounts[0]})
+            .on('transactionHash', function (hash){
+                console.log('on transactionHash');
+                console.log(hash);
+            })
+            .on('confirmation', function (confirmationNumber, receip){
+                console.log('on confirmation');
+                console.log(confirmationNumber, receip);
+            })
+            .on('receipt', function (receipt){
+                console.log('on receipt');
+                console.log(receipt);
+            })
+            .on('error', function (error, receipt){
+                console.log('on error');
+                console.log(error, receipt);
+            })
+
     }
 
     addressInputHandler = (event) => {
@@ -131,6 +176,7 @@ class ManageVoter extends Component {
                                     <InputGroup className="mb-2" hasValidation>
                                         <InputGroup.Text>Ξ</InputGroup.Text>
                                         <FormControl
+                                            disabled={this.state.workflowStatus !== 0}
                                             onBlur={this.addressInputHandler.bind(this)}
                                             placeholder="0x address or ENS"
                                             isValid={this.state.isValid}
@@ -148,15 +194,20 @@ class ManageVoter extends Component {
                     <Container>
                         <Row>
                             <Col>
-                                <h4 className="mt-4">Votans enregistrés</h4>
+                                <h4 className="mt-4">Registered voters</h4>
                                 <hr/>
-                                <Row xs={3} md={6}>
-                                    {this.state.voters.map((address, id) => (
-                                        <Col key={address}>
-                                            <Voter address={address} id={id} instance={this.context.contract}/>
-                                        </Col>
-                                    ))}
-                                </Row>
+                                {
+                                    this.state.voters.length > 0 ?
+                                    <Row xs={3} md={6}>
+                                        {this.state.voters.map((address, id) => (
+                                            <Col key={address}>
+                                                <Voter address={address} id={id} instance={this.context.contract}/>
+                                            </Col>
+                                        ))}
+                                    </Row>
+                                    :
+                                    <p>No voters yet</p>
+                                }
                             </Col>
                         </Row>
                     </Container>
@@ -165,7 +216,14 @@ class ManageVoter extends Component {
 
         }
         else {
-            return <h1>Only owner here !</h1>
+            return (
+                <Alert variant="danger">
+                    <Alert.Heading>You are not allowed</Alert.Heading>
+                    <p>
+                        Only contract owner authorized here !
+                    </p>
+                </Alert>
+            )
         }
 
     }

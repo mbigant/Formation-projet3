@@ -11,6 +11,7 @@ import VotingContract from "./contracts/Voting.json";
 import {Route, Switch} from "react-router-dom";
 import ManageVoter from "./pages/ManageVoter";
 import Workflow from "./pages/Workflow";
+import Vote from "./pages/Vote";
 
 
 class App extends Component {
@@ -20,7 +21,9 @@ class App extends Component {
         this.state = {
             accounts: [],
             contract: null,
-            owner: null
+            owner: null,
+            contractAddress: null,
+            contractTxHash: null,
         };
     }
 
@@ -29,6 +32,7 @@ class App extends Component {
         try {
             // Get network provider and web3 instance.
             const web3 = await getWeb3();
+            web3.eth.handleRevert = true;
 
             // Use web3 to get the user's accounts.
             const accounts = await web3.eth.getAccounts();
@@ -42,10 +46,6 @@ class App extends Component {
             );
 
             const owner = await instance.methods.owner().call();
-
-            // console.log('Nework id ', networkId)
-            // console.log('Deployed at ', deployedNetwork.address)
-            // console.log('Owner is ', owner)
 
             if( window.ethereum ) {
                 // detect Metamask account change
@@ -61,29 +61,10 @@ class App extends Component {
                 });
             }
 
-            // instance.events.VoterRegistered({})
-            //     .on('data', event => { console.log(event) })
-            //     .on('error', event => { console.log('error') })
-            //     .on('connected', event => { console.log('connected') });
-            //
-            //
-            // instance.events.VoterRegistered({
-            //     fromBlock: 25958180,
-            // }, function(err, event) {
-            //     if( err ) {
-            //         console.log(err)
-            //     }
-            //     console.log(event.returnValues.voterAddress)
-            // });
-
-            const voter = await instance.methods.getVoter('0xa9e5c6C46C47c8f59BE35b41e2f76cb893178FA5').call();
-
-            console.log(voter)
-
 
             // Set web3, accounts, and contract to the state, and then proceed with an
             // example of interacting with the contract's methods.
-            this.setState({web3, accounts, contract: instance, owner: owner.toLowerCase()});
+            this.setState({web3, accounts, contract: instance, owner: owner.toLowerCase(), contractAddress: deployedNetwork.address, contractTxHash: deployedNetwork.transactionHash });
 
         } catch (error) {
             // Catch any errors for any of the above operations.
@@ -97,18 +78,21 @@ class App extends Component {
     render() {
 
         return (
-            <Web3Context.Provider value={{ web3: this.state.web3, contract: this.state.contract, accounts: this.state.accounts, owner: this.state.owner }}>
+            <Web3Context.Provider value={{ web3: this.state.web3, contract: this.state.contract, accounts: this.state.accounts, owner: this.state.owner, contractAddress: this.state.contractAddress, contractTxHash: this.state.contractTxHash }}>
                     <div className="App">
                         <Header/>
                         <Container className="main">
                             <Switch>
+                                <Route exact path="/">
+                                    <Vote/>
+                                </Route>
                                 <Route path="/admin/voters/">
                                     <ManageVoter/>
                                 </Route>
                                 <Route path="/admin/workflow/">
                                     <Workflow/>
                                 </Route>
-                                <Route path="/proposals/" exact>
+                                <Route exact path="/proposals/">
                                     <h1>proposals</h1>
                                 </Route>
                                 <Route path="/proposals/:id">

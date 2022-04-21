@@ -1,6 +1,7 @@
 import React, {Component} from "react";
-import {Container, Navbar} from "react-bootstrap";
+import {Container, Nav, Navbar} from "react-bootstrap";
 import Web3Context from "../store/web3-context";
+import '../components/footer.css';
 
 class Footer extends Component {
 
@@ -21,6 +22,10 @@ class Footer extends Component {
         );
     }
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+
+    }
+
     componentWillUnmount() {
         clearInterval(this.blockTimer);
     }
@@ -38,8 +43,9 @@ class Footer extends Component {
 
     render() {
         return (
-            <Navbar expand="lg" fixed="bottom">
+            <Navbar expand="lg" fixed="bottom" className="bg-light">
                 <Container>
+                    { this.context.contractAddress ? <Nav>Contract {this.context.contractAddress}</Nav> : '' }
                     <Navbar.Collapse className="justify-content-end">
                         <Navbar.Text>
                             Block {this.state.blockNumber}

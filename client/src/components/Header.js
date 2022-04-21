@@ -19,7 +19,7 @@ class Header extends Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        console.log('componentDidUpdate')
+
     }
 
     render() {
@@ -31,16 +31,13 @@ class Header extends Component {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
-                            <Nav.Link href="#home">Home</Nav.Link>
+                            <Nav.Link href="/">Vote</Nav.Link>
                             {
                                 (this.context.accounts.length > 0 && this.context.accounts[0].toLowerCase() === this.context.owner)  &&
                                 // Only owner
                                 <NavDropdown title="Administration" id="basic-nav-dropdown">
-
-                                    <NavDropdown.Item><NavLink to='/admin/voters'>Voters</NavLink></NavDropdown.Item>
-                                    <NavDropdown.Item><NavLink to='/admin/workflow'>Workflow</NavLink></NavDropdown.Item>
-                                    <NavDropdown.Divider />
-                                    <NavDropdown.Item href="#action/3.4">Separated link</NavDropdown.Item>
+                                    <NavLink to='/admin/voters' activeClassName="active" >Voters</NavLink>
+                                    <NavLink to='/admin/workflow' activeClassName="active" >Workflow</NavLink>
                                 </NavDropdown>
                             }
                         </Nav>
