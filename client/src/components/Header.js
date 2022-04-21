@@ -35,7 +35,7 @@ class Header extends Component {
                             {
                                 (this.context.accounts.length > 0 && this.context.accounts[0].toLowerCase() === this.context.owner)  &&
                                 // Only owner
-                                <NavDropdown title="Administration" id="basic-nav-dropdown">
+                                <NavDropdown title="Admin" id="basic-nav-dropdown">
                                     <NavLink to='/admin/voters' activeClassName="active" >Voters</NavLink>
                                     <NavLink to='/admin/workflow' activeClassName="active" >Workflow</NavLink>
                                 </NavDropdown>

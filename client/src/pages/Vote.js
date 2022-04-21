@@ -3,6 +3,9 @@ import Web3Context from "../store/web3-context";
 import {Alert, Button, Card, Col, Container, Row} from "react-bootstrap";
 import ProposalModal from "../components/ProposalModal";
 import Moment from "react-moment";
+import './vote.css';
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faTrophy} from "@fortawesome/free-solid-svg-icons";
 
 class Vote extends Component {
 
@@ -87,6 +90,24 @@ class Vote extends Component {
             this.setState({
                 workflowStatus: parseInt(result)
             })
+
+            if( parseInt(result) === 5 ) {
+                console.log('fetching winner')
+                const winner = await this.context.contract.methods.winningProposalID().call();
+                console.log(winner)
+
+                for( let i in this.state.proposals ) {
+
+                    if( this.state.proposals[i].id === winner ) {
+                        console.log('winner found')
+                        this.setState((prevState) => {
+                            return prevState.proposals[i].isWinner = true;
+                        });
+                        break;
+                    }
+                }
+            }
+
         }
 
     }
@@ -136,11 +157,35 @@ class Vote extends Component {
         this.setState({showModal: true});
     }
 
+    onVote( proposalId ) {
+        console.log('voting for ' + proposalId);
+
+        this.context.contract.once('Voted', (err, event) => {
+            console.log(event)
+            if( !err ) {
+                for( let i in this.state.proposals ) {
+                    if( this.state.proposals[i].id === parseInt(event.returnValues.proposalId) ) {
+                        console.log('found')
+                        this.setState((prevState) => {
+                            return prevState.proposals[i].voteCount = prevState.proposals[i].voteCount + 1;
+                        });
+                        break;
+                    }
+                }
+            }
+        });
+
+        this.context.contract.methods.setVote(proposalId).send({from : this.context.accounts[0]}).then( res => {
+            console.log(res)
+        });
+    }
+
     render() {
 
         if ( this.state.voter ) {
             return (
                 <Container className="mb-5">
+                    <h1 className="mb-4">Proposals</h1>
                     <ProposalModal
                         show={this.state.showModal}
                         disabled={this.state.newProposalDescription == null || this.state.newProposalDescription.length === 0}
@@ -149,31 +194,37 @@ class Vote extends Component {
                         onDescriptionChanged={this.onDescriptionChanged.bind(this)}
                     />
                     <Row xs={1} md={3} className="g-4">
-                        <Col>
-                            <Card border="primary">
-                                <Card.Body>
-                                    <Card.Title>Add Proposal</Card.Title>
-                                    <Card.Text>
-                                        You can submit your own proposal !
-                                    </Card.Text>
-                                    <Button variant="primary" onClick={this.showModal.bind(this)}>Submit my proposal</Button>
-                                </Card.Body>
-                            </Card>
-                        </Col>
+                        { this.state.workflowStatus === 1 && (
+                            <Col>
+                                <Card border="primary">
+                                    <Card.Body>
+                                        <Card.Title>Add Proposal</Card.Title>
+                                        <Card.Text>
+                                            You can submit your own proposal !
+                                        </Card.Text>
+                                        <Button variant="primary" onClick={this.showModal.bind(this)}>Submit my proposal</Button>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                        )}
                         { this.state.proposals && this.state.proposals.map((proposal, idx) => (
                             <Col key={idx}>
-                                <Card className="position-relative">
-                                    { this.state.workflowStatus > 2 && proposal.voteCount > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">2</span> }
+                                <Card className="position-relative"  border={proposal.isWinner ? 'success' : ''}>
+                                    { this.state.workflowStatus > 2 && proposal.voteCount > 0 && <span className={`position-absolute top-0 start-50 translate-middle badge rounded-pill ${proposal.isWinner ? 'bg-success': 'bg-primary'}`}>{proposal.isWinner ? 'Winner - ' : ''} {proposal.voteCount} vote{proposal.voteCount > 1 ? 's' : ''}</span> }
+
                                     <Card.Body>
-                                        <Card.Title>Proposal #{proposal.id}</Card.Title>
+                                        <Card.Title>
+                                            Proposal #{proposal.id}
+                                        </Card.Title>
                                         <Card.Subtitle className="mb-2 text-muted fs-6 font-monospace"><Moment parse="X" format="YYYY-MM-DD HH:mm">{proposal.timestamp}</Moment></Card.Subtitle>
                                         <Card.Text>
+                                            { proposal.isWinner && <div><FontAwesomeIcon className="text-success" icon={faTrophy}/></div> }
                                             {proposal.description}
                                         </Card.Text>
-                                        { this.state.workflowStatus === 3 && <Button variant="outline-primary">Vote for me !</Button> }
+                                        { this.state.workflowStatus === 3 && ! this.state.voter.hasVoted && <Button variant="outline-primary" onClick={this.onVote.bind(this, proposal.id)}>Vote for me !</Button> }
                                     </Card.Body>
                                     <Card.Footer className="text-muted">
-                                        { this.state.workflowStatus > 2 ? 'Vote opened' : 'Voting session not opened' }
+                                        { this.state.workflowStatus < 3 ? 'Voting session not opened' :  this.state.voter.hasVoted && this.state.voter.votedProposalId === proposal.id ? 'Your choice' : this.state.workflowStatus > 3 ? 'Vote closed': 'Vote opened'}
                                     </Card.Footer>
                                 </Card>
                             </Col>

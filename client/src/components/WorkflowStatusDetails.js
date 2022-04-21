@@ -17,7 +17,7 @@ class WorkflowStatusDetail extends Component {
                     <div className="timeline-heading">
                         <h4 className="timeline-title">{this.props.title}</h4>
                         <p>
-                            <small className="text-muted">
+                            <small className="text-muted font-monospace">
                             { this.props.timestamp ? <Moment parse="X" format="YYYY-MM-DD HH:mm">{this.props.timestamp}</Moment> : 'Soon' }
                             </small>
                         </p>

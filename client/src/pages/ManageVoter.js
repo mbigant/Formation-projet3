@@ -167,9 +167,9 @@ class ManageVoter extends Component {
 
             return (
                 <Fragment>
-                    <h1>Gestion des votants</h1>
+                    <h1>Voter console</h1>
                     <Container>
-                        <h4 className="mt-4">Ajouter un votant</h4>
+                        <h4 className="mt-4">Register new voter</h4>
                         <Form onSubmit={this.registerAddress.bind(this)} noValidate validated={false} >
                             <Row className="align-items-center">
                                 <Col>
