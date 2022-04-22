@@ -36,7 +36,7 @@ class Vote extends Component {
             const events = await this.context.contract.getPastEvents('VoterRegistered', {fromBlock: 0});
 
             for( let event of events ) {
-                const voterAddress = event.returnValues.voterAddress.toLowerCase();
+                const voterAddress = event.returnValues._voterAddress.toLowerCase();
 
                 if( voterAddress === this.context.accounts[0].toLowerCase() ) {
                     voterFound = true;
@@ -70,10 +70,10 @@ class Vote extends Component {
             for( let event of events ) {
 
                 const block = await this.context.web3.eth.getBlock(event.blockHash);
-                const proposal = await this.context.contract.methods.getOneProposal(event.returnValues.proposalId).call({from: this.context.accounts[0]});
+                const proposal = await this.context.contract.methods.getOneProposal(event.returnValues._proposalId).call({from: this.context.accounts[0]});
 
                 proposalList.push({
-                    id: event.returnValues.proposalId,
+                    id: event.returnValues._proposalId,
                     description: proposal.description,
                     voteCount: proposal.voteCount,
                     timestamp: block.timestamp
@@ -93,7 +93,7 @@ class Vote extends Component {
 
             if( parseInt(result) === 5 ) {
                 console.log('fetching winner')
-                const winner = await this.context.contract.methods.winningProposalID().call();
+                const winner = await this.context.contract.methods.winningProposalId().call();
                 console.log(winner)
 
                 for( let i in this.state.proposals ) {
@@ -123,11 +123,11 @@ class Vote extends Component {
 
             this.context.web3.eth.getBlock(event.blockHash).then( block => {
 
-                this.context.contract.methods.getOneProposal(event.returnValues.proposalId).call({from: this.context.accounts[0]}).then( proposal => {
+                this.context.contract.methods.getOneProposal(event.returnValues._proposalId).call({from: this.context.accounts[0]}).then( proposal => {
 
                     this.setState( (prevState) => {
                         return prevState.proposals.push({
-                            id: event.returnValues.proposalId,
+                            id: event.returnValues._proposalId,
                             description: proposal.description,
                             voteCount: proposal.voteCount,
                             timestamp: block.timestamp
@@ -158,16 +158,12 @@ class Vote extends Component {
     }
 
     onVote( proposalId ) {
-        console.log('voting for ' + proposalId);
-
         this.context.contract.once('Voted', (err, event) => {
-            console.log(event)
             if( !err ) {
                 for( let i in this.state.proposals ) {
-                    if( this.state.proposals[i].id === parseInt(event.returnValues.proposalId) ) {
-                        console.log('found')
+                    if( parseInt(this.state.proposals[i].id) === parseInt(event.returnValues._proposalId) ) {
                         this.setState((prevState) => {
-                            return prevState.proposals[i].voteCount = prevState.proposals[i].voteCount + 1;
+                            return prevState.proposals[i].voteCount++;
                         });
                         break;
                     }
@@ -176,7 +172,14 @@ class Vote extends Component {
         });
 
         this.context.contract.methods.setVote(proposalId).send({from : this.context.accounts[0]}).then( res => {
-            console.log(res)
+
+            this.setState( (prevState) => {
+                prevState.voter.votedProposalId = proposalId;
+                prevState.voter.hasVoted = true;
+                return prevState;
+            });
+        }).catch(err => {
+            console.log(err)
         });
     }
 
@@ -186,6 +189,14 @@ class Vote extends Component {
             return (
                 <Container className="mb-5">
                     <h1 className="mb-4">Proposals</h1>
+                    {
+                        this.state.workflowStatus < 1 &&
+                        <Alert variant="warning">
+                            <p>
+                                Proposal registration not started !
+                            </p>
+                        </Alert>
+                    }
                     <ProposalModal
                         show={this.state.showModal}
                         disabled={this.state.newProposalDescription == null || this.state.newProposalDescription.length === 0}

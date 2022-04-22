@@ -103,7 +103,7 @@ class Workflow extends Component {
 
     async updateEvent( event ) {
 
-        const status = event.returnValues.newStatus;
+        const status = parseInt(event.returnValues._newStatus);
 
         const block = await this.context.web3.eth.getBlock(event.blockHash);
 

@@ -11,6 +11,7 @@
   "license": "ISC",
   "devDependencies": {
     "@openzeppelin/contracts": "^4.5.0",
+    "@openzeppelin/test-helpers": "^0.5.15",
     "@truffle/hdwallet-provider": "^2.0.5",
     "dotenv": "^16.0.0",
     "ganache": "^7.0.4",

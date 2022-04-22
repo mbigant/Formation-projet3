@@ -41,7 +41,7 @@ class ManageVoter extends Component {
 
         this.context.contract.events.VoterRegistered({fromBlock: 0})
             .on('data', event => {
-                voters.push( event.returnValues.voterAddress );
+                voters.push( event.returnValues._voterAddress );
                 this.setState({voters : voters});
             })
             .on('error', event => { console.log('error') })
