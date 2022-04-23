@@ -46,7 +46,7 @@ contract Voting is Ownable {
 
     /// @dev Revert if called by an unregistered voter address.
     modifier onlyVoters() {
-        require(voters[msg.sender].isRegistered, "You're not a voter");
+        require(voters[msg.sender].isRegistered, "You are not a voter");
         _;
     }
 

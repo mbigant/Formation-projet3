@@ -32,7 +32,7 @@ class App extends Component {
         try {
             // Get network provider and web3 instance.
             const web3 = await getWeb3();
-            web3.eth.handleRevert = true;
+            //web3.eth.handleRevert = true;
 
             // Use web3 to get the user's accounts.
             const accounts = await web3.eth.getAccounts();
@@ -54,10 +54,22 @@ class App extends Component {
                 });
 
                 // detect Network account change
-                window.ethereum.on('networkChanged', function(newNetworkId){
-                    if( newNetworkId !== networkId ) {
-                        alert(`Please change network to Mumbai`);
+                window.ethereum.on('networkChanged', (newNetworkId) => {
+
+                    const network = VotingContract.networks[newNetworkId];
+
+                    if( network ) {
+                        const instance = new web3.eth.Contract(
+                            VotingContract.abi,
+                            network.address,
+                        );
+
+                        this.setState({contract: instance});
                     }
+                    else {
+                        alert(`Unsuported network ! Please change`);
+                    }
+
                 });
             }
 

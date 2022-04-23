@@ -20,7 +20,9 @@
   "directories": {
     "test": "test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "gh-pages": "^3.2.3"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mbigant/Formation-projet3.git"
@@ -28,6 +30,6 @@
   "bugs": {
     "url": "https://github.com/mbigant/Formation-projet3/issues"
   },
-  "homepage": "https://github.com/mbigant/Formation-projet3#readme",
+  "homepage": "https://mbigant.github.io/Formation-projet3/",
   "description": ""
 }

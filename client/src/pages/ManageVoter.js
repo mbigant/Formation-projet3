@@ -54,6 +54,7 @@ class ManageVoter extends Component {
 
         if( this.context.contract ) {
             this.startListeningEvents();
+            this.getStatus();
         }
     }
 
@@ -62,18 +63,7 @@ class ManageVoter extends Component {
         // got context
         if( prevState.contract == null && this.state.contract == null && this.context.contract !== null ) {
 
-            let workflowStatusResp;
-
-            try {
-                workflowStatusResp = parseInt(await this.context.contract.methods.workflowStatus().call());
-            } catch (err) {
-                console.log(err);
-            }
-
-            this.setState({
-                contract: this.context.contract,
-                workflowStatus: workflowStatusResp
-            })
+            this.getStatus();
 
             if( ! this.listenerConnected ) {
                 this.startListeningEvents();
@@ -81,15 +71,25 @@ class ManageVoter extends Component {
         }
     }
 
+    async getStatus() {
+        let workflowStatusResp;
+
+        try {
+            workflowStatusResp = parseInt(await this.context.contract.methods.workflowStatus().call());
+        } catch (err) {
+            console.log(err);
+        }
+
+        this.setState({
+            contract: this.context.contract,
+            workflowStatus: workflowStatusResp
+        })
+    }
+
     registerAddress = (event) => {
         event.preventDefault();
 
-        this.context.contract.once('VoterRegistered', {
-            fromBlock: 25957319
-        }, function(error, event){ console.log(event); });
-
-        console.log( this.context.web3.eth.handleRevert );
-        console.log( this.context.web3.version );
+        this.context.contract.once('VoterRegistered', function(error, event){ console.log(event); });
 
         this.context.contract.methods.addVoter(this.state.inputAddress).send({from: this.context.accounts[0]})
             .on('transactionHash', function (hash){
@@ -201,7 +201,7 @@ class ManageVoter extends Component {
                                     <Row xs={3} md={6}>
                                         {this.state.voters.map((address, id) => (
                                             <Col key={address}>
-                                                <Voter address={address} id={id} instance={this.context.contract}/>
+                                                <Voter address={address} id={id} instance={this.context.contract} from={this.context.accounts[0]}/>
                                             </Col>
                                         ))}
                                     </Row>

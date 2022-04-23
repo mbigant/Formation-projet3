@@ -32,6 +32,8 @@ class Vote extends Component {
 
         if( this.context.accounts.length > 0 && this.context.accounts[0] !== this.state.currentAccount ) {
 
+            console.log('account changed');
+
             let voterFound = false;
             const events = await this.context.contract.getPastEvents('VoterRegistered', {fromBlock: 0});
 
@@ -53,13 +55,18 @@ class Vote extends Component {
                         voter: voter
                     });
 
-                    break;
+                    return;
                 }
             }
 
+            this.setState({
+                currentAccount: this.context.accounts[0],
+                voter: null
+            });
+
         }
 
-        if( this.context.contract && this.state.proposals == null && prevState.proposals == null ) {
+        if( this.context.contract && this.state.proposals == null && prevState.proposals == null && this.state.voter && this.state.voter.isRegistered) {
 
             console.log('fetch proposals')
 
@@ -85,6 +92,8 @@ class Vote extends Component {
 
         if( this.context.contract && this.state.workflowStatus == null ) {
 
+            console.log('get workflowStatus');
+
             const result = await this.context.contract.methods.workflowStatus().call();
 
             this.setState({
@@ -92,14 +101,14 @@ class Vote extends Component {
             })
 
             if( parseInt(result) === 5 ) {
-                console.log('fetching winner')
+
                 const winner = await this.context.contract.methods.winningProposalId().call();
                 console.log(winner)
 
                 for( let i in this.state.proposals ) {
 
                     if( this.state.proposals[i].id === winner ) {
-                        console.log('winner found')
+
                         this.setState((prevState) => {
                             return prevState.proposals[i].isWinner = true;
                         });
@@ -113,12 +122,11 @@ class Vote extends Component {
     }
 
     onHideHandler() {
-        console.log('on Hide')
         this.setState({showModal: false});
     }
 
     onSubmitHandler() {
-        console.log('on Submit')
+
         this.context.contract.once('ProposalRegistered', (err, event) => {
 
             this.context.web3.eth.getBlock(event.blockHash).then( block => {
@@ -185,7 +193,7 @@ class Vote extends Component {
 
     render() {
 
-        if ( this.state.voter ) {
+        if ( this.state.voter && this.state.voter.isRegistered ) {
             return (
                 <Container className="mb-5">
                     <h1 className="mb-4">Proposals</h1>
