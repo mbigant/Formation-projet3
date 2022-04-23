@@ -31,7 +31,7 @@ class Header extends Component {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
-                            <Nav.Link href="/">Vote</Nav.Link>
+                            <Nav.Link href="#/">Vote</Nav.Link>
                             {
                                 (this.context.accounts.length > 0 && this.context.accounts[0].toLowerCase() === this.context.owner)  &&
                                 // Only owner
