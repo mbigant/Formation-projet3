@@ -11,7 +11,7 @@ React application using truffle box
 
 ## Links
 
-- Deployed app : 
+- Deployed app : [https://mbigant.github.io/Formation-projet3/](https://mbigant.github.io/Formation-projet3/)
 - Ropsten Contract : [0x66b7b01C7599A8eF781779AD34CC4FE0a1037384](https://ropsten.etherscan.io/address/0x66b7b01C7599A8eF781779AD34CC4FE0a1037384)
-- Video :
+- Video : [https://www.loom.com/share/1ec7068f25e14c8183bc40f44dba5ca6](https://www.loom.com/share/1ec7068f25e14c8183bc40f44dba5ca6)
 
